@@ -1,0 +1,11 @@
+{
+    "dest": "release-builds/",
+    "icon": "/usr/share/icons/Humanity/categories/128/application-community.svg",
+    "categories": [
+      "Utility"
+    ],
+    "lintianOverrides": [
+      "changelog-file-missing-in-native-package"
+    ]
+  }
+  
