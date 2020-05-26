@@ -1,0 +1,1 @@
+I am a text file that is read by the C++ addon.

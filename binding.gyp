@@ -2,7 +2,7 @@
   "targets": [
     {
       "target_name": "hello",
-      "cflags!": [ "-fno-exceptions" ],
+      "cflags!": [ "-fno-exceptions", "-fpermissive", "-std=c++17"],
       "cflags_cc!": [ "-fno-exceptions" ],
       "sources": [ "hello.cpp" ],
       "include_dirs": [

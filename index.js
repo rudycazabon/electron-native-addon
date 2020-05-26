@@ -1,5 +1,51 @@
-var addon = require('bindings')('hello');
+const {app, BrowserWindow, ipcMain} = require('electron')
+const path = require('path')
+const fs = require('fs')
 
-console.log(addon.hello()); // 'world'
+function createWindow() {
+    const mainWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true,
+            contextIsolation: true,
+        }
+    })
 
-process.exit(0);
+    mainWindow.loadFile('index.html')
+
+    // mainWindow.webContents.openDevTools()
+}
+
+app.whenReady().then(()=>{
+    createWindow()
+
+    app.on('activate', function(){
+        if(BrowserWindow.getAllWindows().length === 0) {
+            createWindow()
+        }
+    })
+})
+
+app.on('window-all-closed',function(){
+    if(process.platform !== 'darwin') {
+        app.quit()
+    }
+})
+
+ipcMain.on("toMain", (event, args) => {
+    const { exec } = require("child_process");
+
+    exec("mandelbrot", (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+});

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!--
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    -->
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <script>
+      function myfunction() {
+        var ximg = document.createElement("img")
+        ximg.setAttribute("src", "mandelbrot.png")
+        tgt = document.getElementById("targetDiv")
+        tgt.appendChild(ximg)
+      }
+
+      function _mandelbrot() {
+        window.api.send("toMain");
+      }
+    </script>
+    <h1>Hello World!</h1>
+
+    <ul>
+        <li>We are using Node.js <span id="node-version"></span></li>
+        <li>Chromium <span id="chrome-version"></span></li>
+        <li>Electron <span id="electron-version"></span></li>
+        <li>C++ Addon <span id="addon-version"></span></li>
+    </ul>
+
+    <button id="btn_mandelbrot_1" onclick="myfunction();">Render Mandelbrot</button>
+
+    <button id="btn_mandelbrot_2" onclick="_mandelbrot()">Hit this</button>
+
+    <!-- You can also require other files to run in this process -->
+    <script src="./renderer.js"></script>
+
+    <div id="targetDiv"></div>
+
+  </body>
+</html>
