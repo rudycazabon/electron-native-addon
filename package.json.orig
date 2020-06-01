@@ -8,6 +8,8 @@
     "start-linux": "./node_modules/electron/dist/electron index.js",
     "start-win": ".\\node_modules\\electron\\dist\\electron.exe index.js",
     "build": "HOME=~/.electron-gyp node-gyp rebuild --arch=x64 --target=8.3.0 --dist-url=https://electronjs.org/headers",
+    "package-linux": "electron-packager . electron-native-addon --overwrite --asar --platform=linux --arch=x64 --icon=/usr/share/icons/Humanity/categories/128/application-community.svg --prune=true --out=./release-builds",
+    "create-debian-installer": "electron-installer-debian --src ./release-builds/electron-native-addon-linux-x64/ --arch amd64 --config debian.json",
     "package-win": "electron-packager . electron-tutorial-app --overwrite --asar --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Electron Tutorial App\"",
     "create-installer-win": "node installers/windows/createinstaller.js"
   },
@@ -24,7 +26,9 @@
   "devDependencies": {
     "bindings": "^1.2.1",
     "cross-env": "^7.0.2",
-    "electron": "^9.0.0",
+    "electron": "^8.3.0",
+    "electron-installer-debian": "^3.0.0",
+    "electron-installer-dmg": "^3.0.0",
     "electron-packager": "^14.2.1",
     "electron-rebuild": "^1.11.0",
     "electron-tabs": "^0.15.0",
