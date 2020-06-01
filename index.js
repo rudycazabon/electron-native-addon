@@ -1,21 +1,32 @@
-const {app, BrowserWindow, ipcMain} = require('electron')
+const {
+    app, 
+    BrowserWindow, 
+    ipcMain
+} = require('electron')
 const path = require('path')
 const fs = require('fs')
 
-function createWindow() {
-    const mainWindow = new BrowserWindow({
+let mainWindow;
+
+async function createWindow() {
+    mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: true,
+            nodeIntegration: false,
             contextIsolation: true,
+            enableRemoteModule: false
         }
+    })
+
+    mainWindow.webContents.on('did-fail-load', () => {
+        mainWindow.webContents.send('')
     })
 
     mainWindow.loadFile('index.html')
 
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
 }
 
 app.whenReady().then(()=>{
@@ -34,18 +45,10 @@ app.on('window-all-closed',function(){
     }
 })
 
-ipcMain.on("toMain", (event, args) => {
-    const { exec } = require("child_process");
+ipcMain.on('toMain', (event, args) => {
+    fs.readFile("test.txt", (error, data) => {
 
-    exec("mandelbrot", (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-    });
-});
+        mainWindow.webContents.send("fromMain", data)
+    })
+})
+

@@ -8,6 +8,7 @@
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
     -->
     <title>Hello World!</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <script>
@@ -18,9 +19,10 @@
         tgt.appendChild(ximg)
       }
 
-      function _mandelbrot() {
-        window.api.send("toMain");
-      }
+      window.api.receive("fromMain", (data) => {
+        console.log(`Received $(data) from main process`)
+      })
+      window.api.send("toMain", "some data")
     </script>
     <h1>Hello World!</h1>
 
@@ -33,10 +35,9 @@
 
     <button id="btn_mandelbrot_1" onclick="myfunction();">Render Mandelbrot</button>
 
-    <button id="btn_mandelbrot_2" onclick="_mandelbrot()">Hit this</button>
-
     <!-- You can also require other files to run in this process -->
     <script src="./renderer.js"></script>
+
 
     <div id="targetDiv"></div>
 

@@ -4,3 +4,5 @@ bin
 release-builds
 stb
 glTF-SDK
+mandelbrot
+mandelbrot.png
