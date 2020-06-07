@@ -7,9 +7,11 @@
   "scripts": {
     "start-linux": "./node_modules/electron/dist/electron index.js",
     "start-win": ".\\node_modules\\electron\\dist\\electron.exe index.js",
-    "build": "HOME=~/.electron-gyp node-gyp rebuild --arch=x64 --target=8.3.0 --dist-url=https://electronjs.org/headers",
+    "node-gyp-build": "HOME=~/.electron-gyp node-gyp rebuild --arch=x64 --target=8.3.0 --dist-url=https://electronjs.org/headers",
+    "cmake-build": "cd build && cmake --build .",
     "package-win": "electron-packager . electron-tutorial-app --overwrite --asar --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Electron Tutorial App\"",
-    "create-installer-win": "node installers/windows/createinstaller.js"
+    "create-installer-win": "node installers/windows/createinstaller.js",
+    "configure-win": "cmake-js configure --toolset=\"Intel(r) oneAPI DPC++ Compiler\" --generator=\"Visual Studio 16 2019\" --arch=x64 --CDCMAKE_CXX_COMPILER=\"c:/Program Files (x86)/inteloneapi/compiler/latest/windows/bin/dpcpp.exe\" --CDCMAKE_C_COMPILER=\"c:/Program Files (x86)/inteloneapi/compiler/latest/windows/bin/clang.exe"
   },
   "author": "Rudy Cazabon",
   "license": "MIT",
@@ -23,10 +25,12 @@
   ],
   "devDependencies": {
     "bindings": "^1.2.1",
+    "cmake-js": "^6.1.0",
     "cross-env": "^7.0.2",
-    "electron": "^9.0.0",
+    "electron": "^8.3.0",
     "electron-packager": "^14.2.1",
     "electron-rebuild": "^1.11.0",
+    "electron-reloader": "^1.0.1",
     "electron-tabs": "^0.15.0",
     "electron-winstaller": "^2.7.0",
     "grunt": "^1.1.0",
@@ -35,12 +39,14 @@
     "grunt-exec": "^3.0.0",
     "nan": "^2.14.1",
     "node-addon-api": "^3.0.0",
-    "node-gyp": "^6.1.0"
+    "node-gyp": "^6.1.0",
+    "smalltalk": "^4.0.6"
   },
   "dependencies": {
+    "bindings": "^1.2.1",
     "electron": "^8.3.0",
     "node-addon-api": "^3.0.0",
-    "bindings": "^1.2.1"
+    "three": "file:three.js"
   },
   "gypfile": true
 }

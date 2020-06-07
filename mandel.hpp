@@ -58,7 +58,12 @@ struct MandelParameters {
       z = z * z + c;
       count++;
     }
-    return count;
+    // return count;
+    if (count < 34) {
+      return (255 * count) / 33;
+    } else {
+      return 0;
+    }
   }
 };
 
@@ -93,9 +98,9 @@ class Mandel {
     {
       for (int i = 0; i < col_count_; ++i)
       {
-       float r = data_[i * col_count_ + j]/255.f;
-       float g = 0.0f;
-       float b = 0.0f;
+       float r = 0.0f;
+       float g = data_[i * col_count_ + j]/255.f;
+       float b = data_[i * col_count_ + j]/64.f;
 
         int ir = int(255.99 * r);
         int ig = int(255.99 * g);

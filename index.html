@@ -1,45 +1,145 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <!--
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    -->
-    <title>Hello World!</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <script>
-      function myfunction() {
-        var ximg = document.createElement("img")
-        ximg.setAttribute("src", "mandelbrot.png")
-        tgt = document.getElementById("targetDiv")
-        tgt.appendChild(ximg)
-      }
 
-      window.api.receive("fromMain", (data) => {
-        console.log(`Received $(data) from main process`)
-      })
-      window.api.send("toMain", "some data")
-    </script>
-    <h1>Hello World!</h1>
-
-    <ul>
-        <li>We are using Node.js <span id="node-version"></span></li>
-        <li>Chromium <span id="chrome-version"></span></li>
-        <li>Electron <span id="electron-version"></span></li>
-        <li>C++ Addon <span id="addon-version"></span></li>
-    </ul>
-
-    <button id="btn_mandelbrot_1" onclick="myfunction();">Render Mandelbrot</button>
-
-    <!-- You can also require other files to run in this process -->
-    <script src="./renderer.js"></script>
+<head>
+  <meta charset="UTF-8">
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <!--
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  -->
 
 
-    <div id="targetDiv"></div>
+  <title>oneAPI Samples Visualizer Demo</title>
+  <link rel="stylesheet" href="style.css">
 
-  </body>
+  <link rel="import" href="sections/communication/ipc.html">
+</head>
+
+<body>
+  <script>
+    function render_mandelbrot() {
+      var ximg = document.createElement("img")
+      ximg.setAttribute("src", "bin/mandelbrot.png")
+      ximg.setAttribute("width", 256)
+      ximg.setAttribute("height", 256)
+      tgt = document.getElementById("img_div")
+      tgt.appendChild(ximg)
+    }
+  </script>
+  <h1>oneAPI Samples Visualizer Demo</h1>
+
+  <ul>
+    <li>We are using Node.js <span id="node-version"></span></li>
+    <li>Chromium <span id="chrome-version"></span></li>
+    <li>Electron <span id="electron-version"></span></li>
+    <li>C++ Addon <span id="addon-version"></span></li>
+  </ul>
+
+  <button id="btn_compute_mandelbrot">Compute Mandelbrot with DPC++</button>
+  <button id="btn_render_mandelbrot" onclick="render_mandelbrot();">Render Mandelbrot</button>
+
+  <div id="img_div" style="width: 50%; height: 50%;"></div>
+
+  <button id="btn_compute_teapot">Compute Teapot with DPC++</button>
+  <button id="btn_render_teapot" onclick="init();">Render Teapot</button>
+
+  <div id="container"></div>
+  <script src='./three.js/build/three.min.js'></script>
+  <script type="module">
+    import * as THREE from './three.js/build/three.module.js'
+    import { OrbitControls } from './three.js/examples/jsm/controls/OrbitControls.js'
+    import { TrackballControls } from './three.js/examples/jsm/controls/TrackballControls.js'
+    import { GLTFLoader } from './three.js/examples/jsm/loaders/GLTFLoader.js'
+    import { RGBELoader } from './three.js/examples/jsm/loaders/RGBELoader.js'
+    import { RoughnessMipmapper } from './three.js/examples/jsm/utils/RoughnessMipmapper.js'
+
+    var container, controls;
+    var camera, scene, renderer;
+
+    init();
+    render();
+
+    function init() {
+
+      container = document.getElementById('container')
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.25, 20);
+      camera.position.set(- 1.8, 0.6, 2.7);
+
+      scene = new THREE.Scene();
+      
+      new RGBELoader()
+					.setDataType( THREE.UnsignedByteType )
+					.setPath( './three.js/examples/textures/equirectangular/' )
+					.load( 'royal_esplanade_1k.hdr', function ( texture ) {
+
+						var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+
+						scene.background = envMap;
+						scene.environment = envMap;
+
+						texture.dispose();
+						pmremGenerator.dispose();
+
+						render();
+
+						// model
+						// use of RoughnessMipmapper is optional
+						var roughnessMipmapper = new RoughnessMipmapper( renderer );
+						var loader = new GLTFLoader().setPath( './bin/' );
+						loader.load( 'teapot.gltf', function ( gltf ) {
+							gltf.scene.traverse( function ( child ) {
+								if ( child.isMesh ) {
+									roughnessMipmapper.generateMipmaps( child.material );
+								}
+							} );
+							scene.add( gltf.scene );
+							roughnessMipmapper.dispose();
+							render();
+						} );
+					} );
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(256, 256);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+			renderer.toneMappingExposure = 0.8;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      container.appendChild( renderer.domElement )
+
+      var pmremGenerator = new THREE.PMREMGenerator( renderer );
+			pmremGenerator.compileEquirectangularShader();
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.addEventListener('change', render); // use if there is no animation loop
+      controls.minDistance = 1;
+      controls.maxDistance = 5;
+      controls.target.set(0, 0, - 0.2);
+      controls.update();
+
+      window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+
+      camera.aspect = 1.0;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(256, 256);
+
+      render();
+
+    }
+
+    //
+
+    function render() {
+
+      renderer.render(scene, camera);
+
+    }      
+  </script>
+</body>
+
 </html>
