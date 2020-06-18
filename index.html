@@ -11,23 +11,12 @@
 
 
   <title>oneAPI Samples Visualizer Demo</title>
-  <link rel="stylesheet" href="style.css">
-
   <link rel="import" href="sections/communication/ipc.html">
   <script src="https://cdn.plot.ly/plotly-latest.min.js" charset="utf-8"></script>
 </head>
 
 <body>
-  <script>
-    function render_mandelbrot() {
-      var ximg = document.createElement("img")
-      ximg.setAttribute("src", "bin/mandelbrot.png")
-      ximg.setAttribute("width", 256)
-      ximg.setAttribute("height", 256)
-      tgt = document.getElementById("img_div")
-      tgt.appendChild(ximg)
-    }
-  </script>
+
   <h1>oneAPI Samples Visualizer Demo</h1>
 
   <ul>
@@ -37,18 +26,40 @@
     <li>C++ Addon <span id="addon-version"></span></li>
   </ul>
 
+  <div id="mandelbrot" style="width: 50%; height: 50%;">
+    <h1>Render Mandelbrot Set</h1>
+  </div>
   <button id="btn_compute_mandelbrot">Compute Mandelbrot with DPC++</button>
   <button id="btn_render_mandelbrot" onclick="render_mandelbrot();">Render Mandelbrot</button>
+  <script>
+    function render_mandelbrot() {
+      var ximg = document.createElement("img")
+      ximg.setAttribute("src", "bin/mandelbrot.png")
+      ximg.setAttribute("width", window.innerWidth)
+      ximg.setAttribute("height", window.innerHeight)
+      tgt = document.getElementById("mandelbrot")
+      tgt.appendChild(ximg)
+    }
 
-  <div id="img_div" style="width: 50%; height: 50%;"></div>
+    function render_teapot() {
+      var x = document.getElementById("teapot");
+      if (x.style.display === "none") {
+        x.style.display = "block";
+      } else {
+        x.style.display = "none";
+      }
+    }
+  </script>
+
+<h1>Render DPC++ Computed Bezier Surfaces</h1>
+<button id="btn_compute_teapot">Compute Teapot with DPC++</button>
+<button id="btn_render_teapot" onclick="render_teapot();">Render Teapot</button>
+<div id="teapot" style="display: none;"></div>
 
 
-  <button id="btn_compute_teapot">Compute Teapot with DPC++</button>
-  <button id="btn_render_teapot" onclick="init();">Render Teapot</button>
-
-  <div id="container"></div>
   <script src='./three.js/build/three.min.js'></script>
   <script type="module">
+
     import * as THREE from './three.js/build/three.module.js'
     import { OrbitControls } from './three.js/examples/jsm/controls/OrbitControls.js'
     import { TrackballControls } from './three.js/examples/jsm/controls/TrackballControls.js'
@@ -56,7 +67,7 @@
     import { RGBELoader } from './three.js/examples/jsm/loaders/RGBELoader.js'
     import { RoughnessMipmapper } from './three.js/examples/jsm/utils/RoughnessMipmapper.js'
 
-    var container, controls;
+    var teapot, controls;
     var camera, scene, renderer;
 
     init();
@@ -64,54 +75,53 @@
 
     function init() {
 
-      container = document.getElementById('container')
+      teapot = document.getElementById('teapot')
 
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.25, 20);
       camera.position.set(- 1.8, 0.6, 2.7);
 
       scene = new THREE.Scene();
-      
+
       new RGBELoader()
-					.setDataType( THREE.UnsignedByteType )
-					.setPath( './three.js/examples/textures/equirectangular/' )
-					.load( 'royal_esplanade_1k.hdr', function ( texture ) {
+        .setDataType(THREE.UnsignedByteType)
+        .setPath('./three.js/examples/textures/equirectangular/')
+        .load('royal_esplanade_1k.hdr', function (texture) {
 
-						var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+          var envMap = pmremGenerator.fromEquirectangular(texture).texture;
 
-						scene.background = envMap;
-						scene.environment = envMap;
+          scene.background = envMap;
+          scene.environment = envMap;
 
-						texture.dispose();
-						pmremGenerator.dispose();
+          texture.dispose();
+          pmremGenerator.dispose();
 
-						render();
+          render();
 
-						// model
-						// use of RoughnessMipmapper is optional
-						var roughnessMipmapper = new RoughnessMipmapper( renderer );
-						var loader = new GLTFLoader().setPath( './bin/' );
-						loader.load( 'teapot.gltf', function ( gltf ) {
-							gltf.scene.traverse( function ( child ) {
-								if ( child.isMesh ) {
-									roughnessMipmapper.generateMipmaps( child.material );
-								}
-							} );
-							scene.add( gltf.scene );
-							roughnessMipmapper.dispose();
-							render();
-						} );
-					} );
+          // model
+          // use of RoughnessMipmapper is optional
+          var roughnessMipmapper = new RoughnessMipmapper(renderer);
+          var loader = new GLTFLoader().setPath('./bin/');
+          loader.load('teapot.gltf', function (gltf) {
+            gltf.scene.traverse(function (child) {
+              if (child.isMesh) {
+                roughnessMipmapper.generateMipmaps(child.material);
+              }
+            });
+            scene.add(gltf.scene);
+            roughnessMipmapper.dispose();
+            render();
+          });
+        });
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(256, 256);
+      renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-			renderer.toneMappingExposure = 0.8;
+      renderer.toneMappingExposure = 0.8;
       renderer.outputEncoding = THREE.sRGBEncoding;
-      container.appendChild( renderer.domElement )
-
-      var pmremGenerator = new THREE.PMREMGenerator( renderer );
-			pmremGenerator.compileEquirectangularShader();
+      teapot.appendChild(renderer.domElement)
+      var pmremGenerator = new THREE.PMREMGenerator(renderer);
+      pmremGenerator.compileEquirectangularShader();
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.addEventListener('change', render); // use if there is no animation loop
@@ -123,61 +133,183 @@
       window.addEventListener('resize', onWindowResize, false);
     }
 
+    export function appendthedom() {
+      teapot.appendChild(renderer.domElement)
+    }
+
     function onWindowResize() {
 
-      camera.aspect = 1.0;
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
 
-      renderer.setSize(256, 256);
-
+      renderer.setSize(window.innerWidth, window.innerHeight);
       render();
-
     }
-
-    //
 
     function render() {
-
       renderer.render(scene, camera);
-
-    }      
-  </script>
-
-  <div id="myDiv" style="width: 512px;"></div>
-  <script>
-    Plotly.d3.csv('bin/new.csv', function(err, rows){
-    function unpack(rows, key) {
-      return rows.map(function(row)
-      { return row[key]; });
     }
 
-    var colors_ = { r:unpack(rows, 'r'), g:unpack(rows,'g'), b:unpack(rows,'b'), a:1.0 }
-
-    var trace1 = {
-      x:unpack(rows, 'x'), y: unpack(rows, 'y'), z: unpack(rows, 'z'),
-      mode: 'markers',
-      symbol: 'circle-dot',
-      marker: {
-        size: 6,
-        line: { color: 'rgba(128, 128, 128, 0.14)', width: 0.1 },
-        opacity: 0.2,
-        cmin: 0.5,
-        cmax: 1.0,
-        cauto: true
-      },
-      type: 'scatter3d'
-    };
-
-    var data = [trace1];
-    var layout = {margin: {
-      l: 0,
-      r: 0,
-      b: 0,
-      t: 0
-      }};
-    Plotly.newPlot('myDiv', data, layout);
-    });
   </script>
+
+  <h1>Rendering DPC++ iso3dfd with Ploty.js scatter3d</h1>
+  <button id="btn_compute_iso3dfd">Compute iso3dfd with DPC++</button>
+  <button id="btn_render_iso3dfd" onclick="render_scatter3d();">Render scatter3d</button>
+  <div id="scatter3d" style="width: 512px;"></div>
+  <script>
+
+    function render_scatter3d() {
+      Plotly.d3.csv('bin/output.csv', function (err, rows) {
+
+        function unpack(rows, key) {
+          return rows.map(function (row) {
+            return parseFloat(row[key]);
+          });
+        }
+
+        data_ = rows.filter(row => Math.abs(row['value']) != 0.0)
+
+        function normalizeBetweenTwoRanges(val, minVal, maxVal, newMin, newMax) {
+          return newMax * ((val - minVal) / (maxVal - minVal));
+        };
+
+        var max_ = Math.max(...unpack(data_, 'value'))
+        var min_ = Math.min(...unpack(data_, 'value'))
+
+        intensity_ = data_.map(el => {
+          var result = Math.floor(normalizeBetweenTwoRanges(el.value, min_, max_, 0, 255))
+          return result;
+        })
+
+        var trace1 = {
+          x: unpack(data_, 'x'),
+          y: unpack(data_, 'y'),
+          z: unpack(data_, 'z'),
+          mode: 'markers',
+          // symbol: 'circle',
+          marker: {
+            size: 6,
+            line: { color: 'rgba(100, 100, 179, 0.5)', width: 0.1 },
+            opacity: 0.2,
+            // color: intensity_,
+            cauto: true,
+            cmin: 124,
+            cmax: 255,
+            autocolorscale: true
+          },
+          type: 'scatter3d'
+        };
+
+        var data = [trace1];
+        var layout = {
+          margin: {
+            l: 0,
+            r: 0,
+            b: 0,
+            t: 0
+          }
+        };
+        Plotly.newPlot('scatter3d', data, layout);
+      });
+    }
+
+  </script>
+
+  <h1>Rendering DPC++ iso3dfd with Ploty.js isosurface</h1>
+  <button id="btn_compute_iso3dfd">Compute iso3dfd with DPC++</button>
+  <button id="btn_render_isosurface" onclick="render_isosurface();">Render isosurface</button>
+  <div id="isosurface"></div>
+  <script>
+
+    function render_isosurface() {
+      Plotly.d3.csv('./bin/output.csv', function (err, rows) {
+        function unpack(rows, key) {
+          return rows.map(function (row) {
+            return parseFloat(row[key]);
+          });
+        }
+
+        var data = [
+          {
+            type: "volume",
+            x: unpack(rows, 'x'),
+            y: unpack(rows, 'y'),
+            z: unpack(rows, 'z'),
+            value: unpack(rows, 'value'),
+            colorscale: "Rainbow",
+            isomin: -20000,
+            isomax: 20000,
+            surface: {
+              show: true,
+              count: 8,
+              fill: 0.75
+            },
+            contour: {
+              show: true,
+              color: "rgba(255, 255, 255, 1.0)",
+              width: 4
+            },
+            slices: {
+              x: {
+                show: true,
+                locations: [20],
+                fill: 1.0
+              },
+              y: { show: false, locations: [32] },
+              z: { show: false, locations: [32] }
+            },
+            caps: {
+              x: { show: false },
+              y: { show: false },
+              z: { show: false }
+            }
+          }
+        ];
+
+        var layout = {
+          margin: { t: 0, l: 0, b: 0 },
+          scene: {
+            camera: {
+              eye: {
+                x: 1.86,
+                y: 0.61,
+                z: 0.98
+              }
+            }
+          }
+        };
+
+        Plotly.newPlot('isosurface', data, layout, { showSendToCloud: true });
+      });
+    }
+
+  </script>
+
+<!--
+  <div id="histogram" style="display: none;"></div>
+  <script>
+    Plotly.d3.csv('./bin/output.csv', function (err, rows) {
+      function unpack(rows, key) {
+        return rows.map(function (row) {
+          return parseFloat(row[key]);
+        });
+      }
+
+      function normalizeBetweenTwoRanges(val, minVal, maxVal, newMin, newMax) {
+        return newMax * ((val - minVal) / (maxVal - minVal));
+      };
+
+      var trace = {
+        x: unpack(rows, 'value'),
+        type: 'histogram',
+        cumulative: { enabled: false }
+      };
+      var data = [trace];
+      Plotly.newPlot('histogram', data);
+    });
+
+  </script>
+-->
 
 </body>
 
