@@ -24,7 +24,7 @@
   "devDependencies": {
     "bindings": "^1.2.1",
     "cross-env": "^7.0.2",
-    "electron": "^9.0.0",
+    "electron": "^8.5.2",
     "electron-packager": "^14.2.1",
     "electron-rebuild": "^1.11.0",
     "electron-tabs": "^0.15.0",
@@ -38,7 +38,7 @@
     "node-gyp": "^6.1.0"
   },
   "dependencies": {
-    "electron": "^8.3.0",
+    "electron": "^8.5.2",
     "node-addon-api": "^3.0.0",
     "bindings": "^1.2.1"
   },
